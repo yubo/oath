@@ -2,7 +2,7 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-package main
+package oath
 
 import (
 	"crypto/hmac"
@@ -22,6 +22,7 @@ import (
 const TIME_FMT = "2006-01-02 15:04:05 MST"
 
 var (
+/*
 	epochSec int64 // Representation of TOTP epoch in seconds
 	err      error
 	key      []byte // The decoded secret
@@ -63,6 +64,7 @@ var (
 		tFlag.PrintDefaults()
 		os.Exit(1)
 	}
+*/
 )
 
 func main() {
@@ -201,12 +203,17 @@ func main() {
 	}
 }
 
-//// OTP functions
+func genTOTP(nowSec, step int64, key, secret string) (string, error) {
+	var code string
+	*counter = nowSec / step
+	code, err = genHOTP(nowSec, step, key, secret)
+	return code, err
+}
 
-func genHOTP() (string, error) {
+func genHOTP(nowSec, step int64, key string) (string, error) {
 	var code uint32
 
-	hash := hmac.New(sha1.New, key)
+	hash := hmac.New(sha1.New, []byte(key))
 
 	err = binary.Write(hash, binary.BigEndian, *counter)
 	if err != nil {
@@ -222,13 +229,6 @@ func genHOTP() (string, error) {
 	passcodeFormat := "%0" + strconv.Itoa(*digits) + "d"
 
 	return fmt.Sprintf(passcodeFormat, code), nil
-}
-
-func genTOTP() (string, error) {
-	var code string
-	*counter = nowSec / *step
-	code, err = genHOTP()
-	return code, err
 }
 
 func validateHOTP() bool {
